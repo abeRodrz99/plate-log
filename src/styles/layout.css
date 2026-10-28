@@ -127,3 +127,19 @@
   #app:not([data-tab=home]){max-width:820px}
   #app[data-tab=workout]:has(.tgrid){max-width:1180px}
 }
+
+/* spacing pass: give headers room, align hero content */
+.top{padding:16px 0 18px;align-items:flex-start}
+.top h1{margin-top:2px}
+.eyebrow{margin-bottom:4px}
+.hero{gap:18px;padding:22px}
+.hero .muted{margin-top:4px}
+.sect{margin:34px 0 12px}
+.card-h{margin-bottom:10px}
+.home-rail{margin-top:0}
+@media (min-width:960px){
+  .top{padding:36px 0 24px}
+  .home-rail{padding-top:0}
+  .hero{padding:22px 26px}
+  .sect{margin:36px 0 14px}
+}
