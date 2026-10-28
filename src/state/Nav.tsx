@@ -20,6 +20,11 @@ interface NavContext {
   setHistoryOpen(id: string | null): void
   /** Open a workout in History from anywhere. */
   showInHistory(id: string): void
+  /** Lift shown on Progress; null = the most recent one. */
+  lift: string | null
+  setLift(name: string | null): void
+  /** Jump to a lift's trend and records. */
+  showLift(name: string): void
 }
 
 const Ctx = createContext<NavContext | null>(null)
@@ -27,6 +32,7 @@ const Ctx = createContext<NavContext | null>(null)
 export function NavProvider({ children }: { children: ReactNode }) {
   const tab = useSyncExternalStore(subscribe, parse, () => 'home' as Tab)
   const [historyOpen, setHistoryOpen] = useState<string | null>(null)
+  const [lift, setLift] = useState<string | null>(null)
 
   const go = useCallback((t: Tab) => {
     location.hash = t
@@ -42,9 +48,17 @@ export function NavProvider({ children }: { children: ReactNode }) {
     [go],
   )
 
+  const showLift = useCallback(
+    (name: string) => {
+      setLift(name)
+      go('progress')
+    },
+    [go],
+  )
+
   const value = useMemo(
-    () => ({ tab, go, historyOpen, setHistoryOpen, showInHistory }),
-    [tab, go, historyOpen, showInHistory],
+    () => ({ tab, go, historyOpen, setHistoryOpen, showInHistory, lift, setLift, showLift }),
+    [tab, go, historyOpen, showInHistory, lift, showLift],
   )
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

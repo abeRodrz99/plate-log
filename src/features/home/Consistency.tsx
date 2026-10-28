@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { countsByDay, heatWeeks, monthView, sessionsPerWeek, weekStreak } from '../../domain/consistency'
+import { countsByDay, monthView, sessionsPerWeek, weekStreak } from '../../domain/consistency'
 import type { Activity, Workout } from '../../domain/types'
 import { Icon } from '../../components/Icon'
 import { useLogActivity } from '../../state/ActivityUI'
@@ -8,37 +8,6 @@ const dayTitle = (key: string, lifts: number, acts: number) =>
   [key, lifts && `${lifts} lifting`, acts && `${acts} other`].filter(Boolean).join(' · ')
 
 const DOW = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
-
-export function ThisWeek({ workouts, activities, now }: { workouts: Workout[]; activities: Activity[]; now: Date }) {
-  const all = useMemo(() => [...workouts, ...activities], [workouts, activities])
-  const counts = useMemo(() => countsByDay(all), [all])
-  const cols = useMemo(() => heatWeeks(counts, now, 12), [counts, now])
-  const streak = weekStreak(all, now)
-  const thisWeek = cols[cols.length - 1].reduce((a, d) => a + d.count, 0)
-  return (
-    <section className="card pad" aria-label="This week">
-      <div className="card-h">
-        <h2>This week</h2>
-        <span className={`streak${streak ? ' on' : ''}`}>
-          <Icon name="flame" size={16} />
-          {streak} week streak
-        </span>
-      </div>
-      <p className="big num">
-        {thisWeek} <small>{thisWeek === 1 ? 'session' : 'sessions'}</small>
-      </p>
-      <div className="heat" role="img" aria-label={`Workouts over the last 12 weeks, ${thisWeek} this week`}>
-        {cols.map((col, i) => (
-          <div className="heat-col" key={i}>
-            {col.map((d) => (
-              <i key={d.key} className={d.future ? 'f' : d.count > 1 ? 'l2' : d.count ? 'l1' : ''} title={d.key} />
-            ))}
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
 
 export function ConsistencyCalendar({ workouts, activities, now }: { workouts: Workout[]; activities: Activity[]; now: Date }) {
   const [offset, setOffset] = useState(0)
@@ -90,7 +59,7 @@ export function ConsistencyCalendar({ workouts, activities, now }: { workouts: W
           <div><dt>Per week</dt><dd className="num">{sessionsPerWeek(all, now)}</dd></div>
         </dl>
         <div className="cal-foot">
-          <span className="legend"><i className="k lift" />Lifting <i className="k act" />Other activity</span>
+          <span className="legend"><i className="k kl" />Lifting <i className="k ka" />Other activity</span>
           <button className="btn ghost sm" onClick={logActivity}>+ Log activity</button>
         </div>
       </div>

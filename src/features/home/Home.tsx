@@ -10,7 +10,8 @@ import { useConfirm } from '../../lib/useConfirm'
 import { useLogActivity } from '../../state/ActivityUI'
 import { useApp } from '../../state/AppState'
 import { useNav } from '../../state/Nav'
-import { ConsistencyCalendar, ThisWeek } from './Consistency'
+import { ConsistencyCalendar } from './Consistency'
+import { RecentPRs } from './RecentPRs'
 
 const greeting = (h: number) => (h < 5 ? 'Late night' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening')
 
@@ -140,8 +141,8 @@ export function Home() {
         </div>
 
         <aside className="home-rail">
-          <ThisWeek workouts={workouts} activities={activities} now={now} />
           <ConsistencyCalendar workouts={workouts} activities={activities} now={now} />
+          <RecentPRs workouts={workouts} now={now.getTime()} />
         </aside>
       </div>
     </>

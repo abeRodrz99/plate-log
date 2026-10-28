@@ -77,22 +77,24 @@ export function ActiveWorkout() {
         </div>
       )}
 
-      {active.exercises.map((ex, ei) => (
-        <ExerciseCard
-          key={ex.id}
-          ex={ex}
-          prev={lastSets(workouts, ex.name)}
-          onRemove={() => updateActive((a) => void a.exercises.splice(ei, 1))}
-          onAddSet={() => updateActive((a) => void a.exercises[ei].sets.push(blankSet()))}
-          onRemoveSet={(si) => updateActive((a) => void a.exercises[ei].sets.splice(si, 1))}
-          onField={(si, f, v) => setField(ei, si, f, v)}
-          onToggle={(si) => toggle(ei, si)}
-          onCopyPrev={(si) => {
-            const p = lastSets(workouts, ex.name)[si]
-            if (p) updateActive((a) => Object.assign(a.exercises[ei].sets[si], { w: p.w, r: p.r }))
-          }}
-        />
-      ))}
+      <div className="exgrid">
+        {active.exercises.map((ex, ei) => (
+          <ExerciseCard
+            key={ex.id}
+            ex={ex}
+            prev={lastSets(workouts, ex.name)}
+            onRemove={() => updateActive((a) => void a.exercises.splice(ei, 1))}
+            onAddSet={() => updateActive((a) => void a.exercises[ei].sets.push(blankSet()))}
+            onRemoveSet={(si) => updateActive((a) => void a.exercises[ei].sets.splice(si, 1))}
+            onField={(si, f, v) => setField(ei, si, f, v)}
+            onToggle={(si) => toggle(ei, si)}
+            onCopyPrev={(si) => {
+              const p = lastSets(workouts, ex.name)[si]
+              if (p) updateActive((a) => Object.assign(a.exercises[ei].sets[si], { w: p.w, r: p.r }))
+            }}
+          />
+        ))}
+      </div>
 
       <button className="btn block ghost" onClick={() => setPicking(true)}>
         + Add exercise

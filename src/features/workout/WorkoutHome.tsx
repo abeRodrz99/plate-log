@@ -30,9 +30,12 @@ export function WorkoutHome({ onEdit }: Props) {
           <h1>Workout</h1>
           <p className="sub">{sub}</p>
         </div>
+        <button className="btn dv" onClick={() => startWorkout()}>
+          Start empty workout
+        </button>
       </div>
 
-      <button className="btn block" onClick={() => startWorkout()}>
+      <button className="btn block pv" onClick={() => startWorkout()}>
         Start empty workout
       </button>
 
@@ -68,17 +71,15 @@ export function WorkoutHome({ onEdit }: Props) {
           <div className="sect">
             <h2>Starter programs</h2>
           </div>
-          <div className="rows">
+          <div className="tgrid">
             {starters.map(({ s, i }) => (
-              <div className="row" key={s.name}>
-                <div className="grow">
-                  <h3>{s.name}</h3>
-                  <p>{s.exercises.length} exercises · from your runner strength plan</p>
-                </div>
-                <button className="btn ghost sm" onClick={() => addStarter(i)}>
-                  Add
+              <article className="tcard card pad" key={s.name}>
+                <h3>{s.name}</h3>
+                <p>{s.exercises.length} exercises · from your runner strength plan</p>
+                <button className="btn ghost sm" style={{ marginTop: 14 }} onClick={() => addStarter(i)}>
+                  + Add to my templates
                 </button>
-              </div>
+              </article>
             ))}
           </div>
         </>

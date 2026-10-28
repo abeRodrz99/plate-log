@@ -86,16 +86,3 @@ export function sessionsPerWeek(workouts: Dated[], now: Date, weeks = 8): number
   const n = workouts.filter((w) => w.startedAt >= start && w.startedAt <= now.getTime() + DAY).length
   return Math.round((n / weeks) * 10) / 10
 }
-
-/** Heatmap columns (weeks, oldest first) of 7 day-cells each, ending with the current week. */
-export function heatWeeks(counts: Map<string, number>, now: Date, weeks = 12) {
-  const todayKey = dayKey(now)
-  const start = weekStart(now)
-  return Array.from({ length: weeks }, (_, wi) =>
-    Array.from({ length: 7 }, (_, di) => {
-      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() - (weeks - 1 - wi) * 7 + di)
-      const key = dayKey(d)
-      return { key, count: counts.get(key) ?? 0, future: key > todayKey }
-    }),
-  )
-}

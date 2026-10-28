@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { countsByDay, heatWeeks, monthView, sessionsPerWeek, weekStart, weekStreak } from './consistency'
+import { countsByDay, monthView, sessionsPerWeek, weekStart, weekStreak } from './consistency'
 import type { Workout } from './types'
 
 const w = (y: number, m: number, d: number): Workout => ({
@@ -42,13 +42,6 @@ describe('consistency', () => {
     const list = [w(2026, 9, 27), w(2026, 9, 20), w(2026, 9, 21), w(2026, 9, 14)]
     expect(sessionsPerWeek(list, NOW, 4)).toBe(1)
     expect(sessionsPerWeek(list, NOW, 8)).toBe(0.5)
-  })
-
-  it('lays out heat weeks ending on the current week', () => {
-    const cols = heatWeeks(countsByDay([w(2026, 9, 28)]), NOW, 3)
-    expect(cols).toHaveLength(3)
-    expect(cols[2][2]).toMatchObject({ count: 1, future: false }) // Wednesday
-    expect(cols[2][3].future).toBe(true)
   })
 })
 

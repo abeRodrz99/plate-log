@@ -55,7 +55,7 @@ export function TemplateEditor({ template, onDone }: Props) {
   }
 
   return (
-    <>
+    <div className="narrow">
       <div className="top">
         <h1>{isNew ? 'New template' : 'Edit template'}</h1>
         <button className="btn sm" onClick={save}>
@@ -144,6 +144,6 @@ export function TemplateEditor({ template, onDone }: Props) {
           onPick={(n, type) => setRows((r) => [...r, { name: n, type, sets: '3', reps: '' }])}
         />
       )}
-    </>
+    </div>
   )
 }
