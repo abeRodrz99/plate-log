@@ -1,0 +1,35 @@
+/* Design tokens: steel neutrals, barbell-plate blue accent, gold = PR, green = done.
+   Light by default, dark via prefers-color-scheme. */
+:root{
+  --bg:#EDF0F2; --surface:#FFFFFF; --surface-2:#E4E8EC; --line:#D3D9DF;
+  --fg:#15191D; --muted:#59646F;
+  --accent:#1F55D8; --accent-fg:#FFFFFF;
+  --done:#1D8559; --done-bg:#DCF0E5;
+  --pr:#8F6A00; --pr-bg:#F8EBC3;
+  --danger:#B93426;
+  --bar:rgba(237,240,242,.74); --bar2:rgba(255,255,255,.74); --tint:rgba(31,85,216,.12);
+  --f-display:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',system-ui,sans-serif;
+  --f-body:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1316; --surface:#171C20; --surface-2:#20262B; --line:#2C343B;
+    --fg:#E8ECEF; --muted:#94A0AB;
+    --accent:#6E98FF; --accent-fg:#0A1020;
+    --done:#4CC78D; --done-bg:#15312A;
+    --pr:#EBBE2F; --pr-bg:#352B0C;
+    --danger:#F0786C;
+  --bar:rgba(15,19,22,.72); --bar2:rgba(23,28,32,.72); --tint:rgba(110,152,255,.18);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1316; --surface:#171C20; --surface-2:#20262B; --line:#2C343B;
+  --fg:#E8ECEF; --muted:#94A0AB;
+  --accent:#6E98FF; --accent-fg:#0A1020;
+  --done:#4CC78D; --done-bg:#15312A;
+  --pr:#EBBE2F; --pr-bg:#352B0C;
+  --danger:#F0786C;
+  --bar:rgba(15,19,22,.72); --bar2:rgba(23,28,32,.72); --tint:rgba(110,152,255,.18);
+  color-scheme:dark;
+}
