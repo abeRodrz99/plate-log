@@ -9,7 +9,7 @@ export interface Snapshot {
 /**
  * The only seam between the UI and wherever data lives.
  * Today: browser storage. To go multi-device, implement this against an API or
- * hosted database and return it from `createRepository()` in ./index.ts.
+ * hosted database and pick it in src/App.tsx.
  */
 export interface Repository {
   /** 'device' = localStorage, 'memory' = storage blocked, 'remote' = your backend. */
