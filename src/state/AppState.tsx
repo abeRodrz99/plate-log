@@ -152,9 +152,11 @@ export function AppProvider({ children, repo, importFrom }: ProviderProps) {
     toast('Uploading this device’s data to your account…')
     persist(
       (async () => {
-        for (const w of snap.workouts) await repo.saveWorkout(w)
-        for (const t of snap.templates) await repo.saveTemplate(t)
-        for (const a of snap.activities) await repo.saveActivity(a)
+        await Promise.all([
+          ...snap.workouts.map((w) => repo.saveWorkout(w)),
+          ...snap.templates.map((t) => repo.saveTemplate(t)),
+          ...snap.activities.map((a) => repo.saveActivity(a)),
+        ])
         toast('Upload complete. Your phone and web now share this data.')
       })(),
     )
@@ -290,11 +292,10 @@ export function AppProvider({ children, repo, importFrom }: ProviderProps) {
     setWorkouts((prev) => [...prev, ...list])
     setActivities((prev) => [...prev, ...acts])
     toast('Sample data added. Remove it anytime from History.')
-    // One write at a time keeps remote backends happy.
+    // Issued together so the remote repository can send them as one batch.
     persist(
       (async () => {
-        for (const w of list) await repo.saveWorkout(w)
-        for (const a of acts) await repo.saveActivity(a)
+        await Promise.all([...list.map((w) => repo.saveWorkout(w)), ...acts.map((a) => repo.saveActivity(a))])
       })(),
     )
     return true
@@ -308,8 +309,7 @@ export function AppProvider({ children, repo, importFrom }: ProviderProps) {
     toast('Sample data removed.')
     persist(
       (async () => {
-        for (const id of ids) await repo.deleteWorkout(id)
-        for (const id of actIds) await repo.deleteActivity(id)
+        await Promise.all([...ids.map((id) => repo.deleteWorkout(id)), ...actIds.map((id) => repo.deleteActivity(id))])
       })(),
     )
   }

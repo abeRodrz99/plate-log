@@ -13,7 +13,7 @@ export function Sidebar() {
   const { active } = useApp()
   const start = useStart()
   const logActivity = useLogActivity()
-  const { email, signOut } = useAccount()
+  const { signOut } = useAccount()
   return (
     <aside className="side" aria-label="Main">
       <a className="brand" href="#home">
@@ -39,12 +39,9 @@ export function Sidebar() {
       <div className="side-foot">
         <ThemeToggle />
         {signOut && (
-          <div className="acct">
-            <span title={email ?? ''}>{email}</span>
-            <button className="link" onClick={signOut}>
-              Sign out
-            </button>
-          </div>
+          <button className="link acct" onClick={signOut}>
+            Sign out
+          </button>
         )}
       </div>
     </aside>

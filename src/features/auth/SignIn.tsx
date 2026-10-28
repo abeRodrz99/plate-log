@@ -1,8 +1,12 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { useState, type FormEvent } from 'react'
+import { login, type SyncStatus } from '../../storage'
 
-export function SignIn({ client }: { client: SupabaseClient }) {
-  const [email, setEmail] = useState('')
+interface Props {
+  status: SyncStatus
+  onSignedIn(password: string): void
+}
+
+export function SignIn({ status, onSignedIn }: Props) {
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -11,9 +15,11 @@ export function SignIn({ client }: { client: SupabaseClient }) {
     e.preventDefault()
     setBusy(true)
     setError(null)
-    const { error } = await client.auth.signInWithPassword({ email: email.trim(), password })
-    if (error) setError(error.message)
-    setBusy(false)
+    const err = await login(password)
+    if (err) {
+      setError(err)
+      setBusy(false)
+    } else onSignedIn(password)
   }
 
   return (
@@ -21,13 +27,24 @@ export function SignIn({ client }: { client: SupabaseClient }) {
       <form className="auth-card card" onSubmit={submit}>
         <span className="logo big-logo" aria-hidden="true" />
         <h1>Plate Log</h1>
-        <p className="muted">Sign in to sync your workouts across devices.</p>
-        <label className="lbl" htmlFor="auth-email">Email</label>
-        <input id="auth-email" type="text" inputMode="email" autoComplete="username" autoCapitalize="none" autoCorrect="off" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <label className="lbl" htmlFor="auth-pw">Password</label>
-        <input id="auth-pw" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        {error && <p className="auth-err" role="alert">{error}</p>}
-        <button className="btn block" type="submit" disabled={busy || !email || !password} style={{ marginTop: 18 }}>
+        <p className="muted">Enter your sync password to load your workouts on this device.</p>
+        {!status.ready && (
+          <p className="auth-err" role="alert">
+            Sync isn’t fully set up on the server yet. Missing: {status.missing.join('; ')}.
+          </p>
+        )}
+        {/* A hidden username lets iOS and password managers save the password. */}
+        <input type="text" name="username" value="plate-log" autoComplete="username" readOnly hidden />
+        <label className="lbl" htmlFor="auth-pw">
+          Password
+        </label>
+        <input id="auth-pw" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} autoFocus />
+        {error && (
+          <p className="auth-err" role="alert">
+            {error}
+          </p>
+        )}
+        <button className="btn block" type="submit" disabled={busy || !password || !status.ready} style={{ marginTop: 18 }}>
           {busy ? 'Signing in…' : 'Sign in'}
         </button>
       </form>

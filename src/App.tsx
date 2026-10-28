@@ -4,9 +4,9 @@ import { Home } from './features/home/Home'
 import { History } from './features/history/History'
 import { Progress } from './features/progress/Progress'
 import { WorkoutTab } from './features/workout/WorkoutTab'
-import { AuthGate } from './features/auth/AuthGate'
+import { SyncGate } from './features/auth/SyncGate'
 import { AppProvider, useApp } from './state/AppState'
-import { cloudConfigured, localRepository, type Repository } from './storage'
+import type { Repository } from './storage'
 import { ActivityUIProvider } from './state/ActivityUI'
 import { NavProvider, useNav } from './state/Nav'
 
@@ -68,10 +68,5 @@ function Shell({ repo, importFrom }: { repo: Repository; importFrom?: Repository
 }
 
 export default function App() {
-  // With Supabase credentials in the build: sign in, then sync. Without: everything stays on this device.
-  return cloudConfigured ? (
-    <AuthGate>{(repo, local) => <Shell repo={repo} importFrom={local} />}</AuthGate>
-  ) : (
-    <Shell repo={localRepository} />
-  )
+  return <SyncGate>{(repo, importFrom) => <Shell repo={repo} importFrom={importFrom} />}</SyncGate>
 }

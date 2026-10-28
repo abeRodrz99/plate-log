@@ -6,8 +6,8 @@ export type { Repository, Snapshot } from './repository'
 /** The on-device repository (one shared instance). */
 export const localRepository: Repository = createLocalRepository()
 
-export { cloudConfigured, cloudClient } from './cloud'
-export { createSupabaseRepository } from './supabaseRepository'
+export { createRemoteRepository } from './remoteRepository'
+export { detectSync, login, sessionToken, type SyncStatus } from './session'
 
 /* The in-progress workout is a per-device draft, written on every keystroke,
    so it stays in localStorage even after workouts move to a database. */

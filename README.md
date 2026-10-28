@@ -22,10 +22,11 @@ Stack: Vite, React 19, TypeScript (strict), Vitest. No UI or state library on pu
 ```
 src/
   domain/      pure logic and types, no React: e1RM, volume, PRs, formatting, exercise library, sample data
-  storage/     Repository interface + localStorage and Supabase implementations (the only place data is read or written)
+  storage/     Repository interface + localStorage and remote (API) implementations (the only place data is read or written)
   state/       AppProvider (workouts, templates, active draft, toasts) and hash-based tab navigation
   features/    home/ (dashboard, consistency calendar), workout/ (plans, active session, editor), history/, progress/
   components/  shared UI: Sidebar (desktop), TabBar (phone), TemplateCard, BottomSheet, ExercisePicker, ...
+  api/         Vercel serverless function for sync (Upstash Redis)
   lib/         spring physics, haptics, two-tap confirm hook
   styles/      tokens.css (colors, type), app.css (components), layout.css (shell + responsive layouts)
 ```
@@ -34,18 +35,18 @@ src/
 
 The app icon is `public/icon.svg`. After editing it, run `python3 scripts/make-icons.py` (needs Playwright) to regenerate the PNGs used for iOS (`apple-touch-icon.png`) and the web manifest. On iPhone: Share, then Add to Home Screen.
 
-## Sync across devices (Supabase)
+## Sync across devices (Upstash Redis on Vercel)
 
-With no configuration the app keeps everything on the device. To share one log between your phone and the web:
+Without setup the app keeps everything on the device. To share one log between your phone and the web:
 
-1. Create a free project at supabase.com.
-2. SQL Editor: paste and run `supabase/schema.sql` (three tables, each row locked to its owner by row level security).
-3. Authentication > Users > Add user: your email and a password (tick auto-confirm). Then Authentication > Sign In / Providers: turn off "Allow new users to sign up" so only you can get in.
-4. Project Settings > API: copy the Project URL and the `anon` public key. The anon key is meant to be public; the row level security policies are what protect your data.
-5. Vercel > Project > Settings > Environment Variables: add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, then redeploy. For local dev, copy `.env.example` to `.env.local`.
-6. Open the app on each device and sign in. The first device that already has workouts offers to upload them.
+1. Vercel dashboard > your project > **Storage** > create or connect **Upstash for Redis** (free plan is fine). Vercel adds its connection variables (`KV_REST_API_URL`, `KV_REST_API_TOKEN`) to the project.
+2. Project > **Settings > Environment Variables**: add `APP_PASSWORD` with a long passphrase. This is what you type to sign in.
+3. **Redeploy** (Deployments > ... > Redeploy). Variables only reach new deployments.
+4. Open the app on each device and enter the password. The first device that already has workouts offers to upload them.
 
-Devices re-read your account whenever the app returns to the foreground. The in-progress workout draft stays on the device by design.
+How it works: the browser talks to `api/sync.ts`, a Vercel serverless function, which is the only code that holds the Redis credentials and checks the password (10 wrong attempts locks an address out for 15 minutes). Each kind of record is a Redis hash (`platelog:workouts`, `:templates`, `:activities`). Devices re-read your account whenever the app returns to the foreground. The in-progress workout draft stays on the device by design.
+
+If the sign-in screen says something is missing, the server is only partly configured; the message names what.
 
 ## Using a different database
 
@@ -56,7 +57,7 @@ loadAll(): Promise<{ workouts: Workout[]; templates: Template[] }>
 saveWorkout(w) / deleteWorkout(id) / saveTemplate(t) / deleteTemplate(id)
 ```
 
-The Supabase version is `src/storage/supabaseRepository.ts`. For another backend (your own API, Firebase, ...) write a third implementation and pick it in `src/App.tsx`. Nothing else changes.
+The cloud version is `src/storage/remoteRepository.ts` plus `api/sync.ts`. For another backend, write another implementation of the interface and pick it in `src/features/auth/SyncGate.tsx`. Nothing else changes.
 The in-progress workout draft stays on the device by design; it is written on every keystroke.
 
 A relational shape that maps directly onto the types in `src/domain/types.ts`:
@@ -71,7 +72,7 @@ A relational shape that maps directly onto the types in `src/domain/types.ts`:
 
 ## Notes
 
-- Activities (run, cycle, swim, ...) are a separate, minimal record (`Activity`): date, type, optional minutes and distance. They only feed the consistency calendar, heatmap and week streak. Templates, sets and programs are lifting-only.
+- Activities (run, cycle, swim, ...) are a separate, minimal record (`Activity`): date, type, optional minutes and distance. They only feed the consistency calendar and week streak. Templates, sets and programs are lifting-only.
 - Units are labels only (`UNIT` in `src/domain/format.ts`, default `lb`). Switching does not convert stored numbers.
 - Sample history (Progress or History tab) creates 15 clearly marked workouts and can be removed in two taps.
 - Estimated 1RM uses the Epley formula. A lift's first session is a baseline, never a PR.
