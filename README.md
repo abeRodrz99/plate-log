@@ -22,7 +22,7 @@ Stack: Vite, React 19, TypeScript (strict), Vitest. No UI or state library on pu
 ```
 src/
   domain/      pure logic and types, no React: e1RM, volume, PRs, formatting, exercise library, sample data
-  storage/     Repository interface + localStorage implementation (the only place data is read or written)
+  storage/     Repository interface + localStorage and Supabase implementations (the only place data is read or written)
   state/       AppProvider (workouts, templates, active draft, toasts) and hash-based tab navigation
   features/    home/ (dashboard, consistency calendar), workout/ (plans, active session, editor), history/, progress/
   components/  shared UI: Sidebar (desktop), TabBar (phone), TemplateCard, BottomSheet, ExercisePicker, ...
@@ -34,7 +34,20 @@ src/
 
 The app icon is `public/icon.svg`. After editing it, run `python3 scripts/make-icons.py` (needs Playwright) to regenerate the PNGs used for iOS (`apple-touch-icon.png`) and the web manifest. On iPhone: Share, then Add to Home Screen.
 
-## Connecting a database
+## Sync across devices (Supabase)
+
+With no configuration the app keeps everything on the device. To share one log between your phone and the web:
+
+1. Create a free project at supabase.com.
+2. SQL Editor: paste and run `supabase/schema.sql` (three tables, each row locked to its owner by row level security).
+3. Authentication > Users > Add user: your email and a password (tick auto-confirm). Then Authentication > Sign In / Providers: turn off "Allow new users to sign up" so only you can get in.
+4. Project Settings > API: copy the Project URL and the `anon` public key. The anon key is meant to be public; the row level security policies are what protect your data.
+5. Vercel > Project > Settings > Environment Variables: add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, then redeploy. For local dev, copy `.env.example` to `.env.local`.
+6. Open the app on each device and sign in. The first device that already has workouts offers to upload them.
+
+Devices re-read your account whenever the app returns to the foreground. The in-progress workout draft stays on the device by design.
+
+## Using a different database
 
 Everything the UI knows about storage is the `Repository` interface in `src/storage/repository.ts`:
 
@@ -43,8 +56,7 @@ loadAll(): Promise<{ workouts: Workout[]; templates: Template[] }>
 saveWorkout(w) / deleteWorkout(id) / saveTemplate(t) / deleteTemplate(id)
 ```
 
-To move off the browser, write a second implementation (REST API, Supabase, Firebase, etc.)
-and return it from `createRepository()` in `src/storage/index.ts`. Nothing else changes.
+The Supabase version is `src/storage/supabaseRepository.ts`. For another backend (your own API, Firebase, ...) write a third implementation and pick it in `src/App.tsx`. Nothing else changes.
 The in-progress workout draft stays on the device by design; it is written on every keystroke.
 
 A relational shape that maps directly onto the types in `src/domain/types.ts`:

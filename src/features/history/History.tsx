@@ -4,6 +4,7 @@ import { fmtSet, workoutVolume } from '../../domain/math'
 import type { Workout } from '../../domain/types'
 import { useConfirm } from '../../lib/useConfirm'
 import { useWide } from '../../lib/useMedia'
+import { useAccount } from '../../state/Account'
 import { useApp } from '../../state/AppState'
 import { useNav } from '../../state/Nav'
 
@@ -18,6 +19,7 @@ export function History() {
   const { historyOpen, setHistoryOpen } = useNav()
   const { armed, confirm } = useConfirm()
   const wide = useWide()
+  const { email, signOut } = useAccount()
   const list = [...workouts].sort((a, b) => b.startedAt - a.startedAt)
   const hasSample = workouts.some((w) => w.sample)
   const selected = list.find((w) => w.id === historyOpen) ?? list[0]
@@ -77,7 +79,12 @@ export function History() {
       )}
 
       <div className="foot">
-        <span>{STORAGE_NOTE[storageKind]}</span>
+        <span>{STORAGE_NOTE[storageKind]}{email ? ` Signed in as ${email}.` : ''}</span>
+        {signOut && (
+          <button className="btn ghost sm only-phone-block" onClick={signOut}>
+            Sign out
+          </button>
+        )}
         {hasSample ? (
           <button
             className={`btn sm ${armed === 'rm-sample' ? 'danger' : 'ghost'}`}

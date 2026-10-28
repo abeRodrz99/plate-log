@@ -16,7 +16,7 @@ import { RecentPRs } from './RecentPRs'
 const greeting = (h: number) => (h < 5 ? 'Late night' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening')
 
 export function Home() {
-  const { workouts, templates, activities, active, loadSample, addStarter, deleteActivity } = useApp()
+  const { workouts, templates, activities, active, loadSample, addStarter, deleteActivity, importable, importLocal, dismissImport } = useApp()
   const logActivity = useLogActivity()
   const { armed, confirm } = useConfirm()
   const { go, showInHistory } = useNav()
@@ -46,6 +46,26 @@ export function Home() {
 
       <div className="home">
         <div className="home-main">
+          {importable && (
+            <section className="card pad import" role="status">
+              <div>
+                <h2>Upload this device’s data?</h2>
+                <p className="muted">
+                  Found {importable.workouts} {importable.workouts === 1 ? 'workout' : 'workouts'}
+                  {importable.activities > 0 && `, ${importable.activities} ${importable.activities === 1 ? 'activity' : 'activities'}`}
+                  {importable.templates > 0 && `, ${importable.templates} ${importable.templates === 1 ? 'template' : 'templates'}`} saved here. Add them to your account so every device sees them.
+                </p>
+              </div>
+              <div className="hero-acts">
+                <button className="btn" onClick={importLocal}>
+                  Upload
+                </button>
+                <button className="btn ghost" onClick={dismissImport}>
+                  Not now
+                </button>
+              </div>
+            </section>
+          )}
           <section className="hero card pad">
             <div>
               <h2>{active ? 'Workout in progress' : 'Ready to train?'}</h2>

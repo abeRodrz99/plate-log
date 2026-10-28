@@ -3,10 +3,11 @@ import type { Repository } from './repository'
 
 export type { Repository, Snapshot } from './repository'
 
-/** Pick the data backend. Swap this one line when a real database arrives. */
-export function createRepository(): Repository {
-  return createLocalRepository()
-}
+/** The on-device repository (one shared instance). */
+export const localRepository: Repository = createLocalRepository()
+
+export { cloudConfigured, cloudClient } from './cloud'
+export { createSupabaseRepository } from './supabaseRepository'
 
 /* The in-progress workout is a per-device draft, written on every keystroke,
    so it stays in localStorage even after workouts move to a database. */

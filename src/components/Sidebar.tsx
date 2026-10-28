@@ -1,4 +1,5 @@
 import { useStart } from '../lib/useStart'
+import { useAccount } from '../state/Account'
 import { useLogActivity } from '../state/ActivityUI'
 import { useApp } from '../state/AppState'
 import { TABS, useNav } from '../state/Nav'
@@ -12,6 +13,7 @@ export function Sidebar() {
   const { active } = useApp()
   const start = useStart()
   const logActivity = useLogActivity()
+  const { email, signOut } = useAccount()
   return (
     <aside className="side" aria-label="Main">
       <a className="brand" href="#home">
@@ -36,6 +38,14 @@ export function Sidebar() {
       </nav>
       <div className="side-foot">
         <ThemeToggle />
+        {signOut && (
+          <div className="acct">
+            <span title={email ?? ''}>{email}</span>
+            <button className="link" onClick={signOut}>
+              Sign out
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   )

@@ -5,7 +5,7 @@ import { computePRs } from '../domain/math'
 import { buildSampleActivities, buildSampleHistory } from '../domain/sample'
 import type { Activity, SetEntry, Template, TemplateExercise, Workout } from '../domain/types'
 import { buzz } from '../lib/spring'
-import { createRepository, draftStore, type Repository } from '../storage'
+import { draftStore, type Repository, type Snapshot } from '../storage'
 
 export interface WorkoutSource {
   id?: string | null
@@ -36,20 +36,41 @@ interface AppContext {
   loadSample(): boolean
   removeSample(): void
   exercisePool: ReturnType<typeof exercisePool>
+  /** Set when the first load failed (e.g. offline); `reload` retries. */
+  loadError: string | null
+  reload(): void
+  /** Data found on this device that isn't in the account yet. */
+  importable: { workouts: number; templates: number; activities: number } | null
+  importLocal(): void
+  dismissImport(): void
 }
+
+const IMPORT_DISMISSED = 'platelog.import.dismissed'
+type ProviderImport = { workouts: number; templates: number; activities: number }
 
 const Ctx = createContext<AppContext | null>(null)
 
 export const blankSet = (): SetEntry => ({ w: null, r: null, done: false })
 
-export function AppProvider({ children }: { children: ReactNode }) {
-  const repo = useMemo(() => createRepository(), [])
+interface ProviderProps {
+  children: ReactNode
+  repo: Repository
+  /** When the main repo is a cloud account, the on-device repo to offer uploading from. */
+  importFrom?: Repository
+}
+
+export function AppProvider({ children, repo, importFrom }: ProviderProps) {
   const [ready, setReady] = useState(false)
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [templates, setTemplates] = useState<Template[]>([])
   const [activities, setActivities] = useState<Activity[]>([])
   const [active, setActive] = useState<Workout | null>(() => draftStore.load<Workout>())
   const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [reloadTick, setReloadTick] = useState(0)
+  const [importable, setImportable] = useState<ProviderImport | null>(null)
+  const localSnap = useRef<Snapshot | null>(null)
+  const pending = useRef(0)
   const toastTimer = useRef<number | undefined>(undefined)
 
   const toast = useCallback((msg: string) => {
@@ -60,24 +81,93 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const persist = useCallback(
     (p: Promise<unknown>) => {
-      p.catch((e: unknown) => toast(`Could not save. ${e instanceof Error ? e.message : 'Try again.'}`))
+      pending.current++
+      p.catch((e: unknown) => toast(`Could not save. ${e instanceof Error ? e.message : 'Try again.'}`)).finally(() => {
+        pending.current--
+      })
     },
     [toast],
   )
 
   useEffect(() => {
     let cancelled = false
-    repo.loadAll().then((d) => {
-      if (cancelled) return
-      setWorkouts(d.workouts)
-      setTemplates(d.templates)
-      setActivities(d.activities)
-      setReady(true)
-    })
+    repo
+      .loadAll()
+      .then(async (d) => {
+        if (cancelled) return
+        setWorkouts(d.workouts)
+        setTemplates(d.templates)
+        setActivities(d.activities)
+        setLoadError(null)
+        setReady(true)
+        // First sign-in on a device that already holds data: offer to upload it.
+        const empty = !d.workouts.length && !d.templates.length && !d.activities.length
+        if (empty && importFrom && importFrom !== repo && localStorage.getItem(IMPORT_DISMISSED) !== '1') {
+          const local = await importFrom.loadAll()
+          if (!cancelled && (local.workouts.length || local.templates.length || local.activities.length)) {
+            localSnap.current = local
+            setImportable({ workouts: local.workouts.length, templates: local.templates.length, activities: local.activities.length })
+          }
+        }
+      })
+      .catch((e: unknown) => {
+        if (!cancelled) setLoadError(e instanceof Error ? e.message : 'Could not load your data.')
+      })
     return () => {
       cancelled = true
     }
+  }, [repo, importFrom, reloadTick])
+
+  // Keep phone and web in step: re-read the account whenever the app comes back into view.
+  useEffect(() => {
+    if (repo.kind !== 'remote') return
+    const refresh = () => {
+      if (document.visibilityState !== 'visible' || pending.current > 0) return
+      repo
+        .loadAll()
+        .then((d) => {
+          if (pending.current > 0) return // a save started meanwhile; its result is newer than this read
+          setWorkouts(d.workouts)
+          setTemplates(d.templates)
+          setActivities(d.activities)
+        })
+        .catch(() => {})
+    }
+    document.addEventListener('visibilitychange', refresh)
+    window.addEventListener('online', refresh)
+    return () => {
+      document.removeEventListener('visibilitychange', refresh)
+      window.removeEventListener('online', refresh)
+    }
   }, [repo])
+
+  const importLocal = () => {
+    const snap = localSnap.current
+    if (!snap) return
+    localSnap.current = null
+    setImportable(null)
+    setWorkouts((prev) => [...prev, ...snap.workouts])
+    setTemplates((prev) => [...prev, ...snap.templates])
+    setActivities((prev) => [...prev, ...snap.activities])
+    toast('Uploading this device’s data to your account…')
+    persist(
+      (async () => {
+        for (const w of snap.workouts) await repo.saveWorkout(w)
+        for (const t of snap.templates) await repo.saveTemplate(t)
+        for (const a of snap.activities) await repo.saveActivity(a)
+        toast('Upload complete. Your phone and web now share this data.')
+      })(),
+    )
+  }
+
+  const dismissImport = () => {
+    try {
+      localStorage.setItem(IMPORT_DISMISSED, '1')
+    } catch {
+      /* ignore */
+    }
+    setImportable(null)
+  }
 
   // The draft is saved shortly after each edit so a refresh never loses a workout.
   useEffect(() => {
@@ -199,7 +289,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const acts = buildSampleActivities()
     setWorkouts((prev) => [...prev, ...list])
     setActivities((prev) => [...prev, ...acts])
-    toast(`Loaded ${list.length} sample workouts and ${acts.length} activities. Remove them anytime from History.`)
+    toast('Sample data added. Remove it anytime from History.')
     // One write at a time keeps remote backends happy.
     persist(
       (async () => {
@@ -249,6 +339,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     loadSample,
     removeSample,
     exercisePool: pool,
+    loadError,
+    reload: () => setReloadTick((n) => n + 1),
+    importable,
+    importLocal,
+    dismissImport,
   }
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
