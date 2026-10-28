@@ -51,3 +51,21 @@ describe('consistency', () => {
     expect(cols[2][3].future).toBe(true)
   })
 })
+
+describe('consistency with other activities', () => {
+  it('counts a day with only a run as active and keeps lifts separate', () => {
+    const lifts = countsByDay([w(2026, 9, 26)])
+    const acts = countsByDay([w(2026, 9, 27), w(2026, 9, 27)])
+    const v = monthView(2026, 9, lifts, NOW, acts)
+    expect(v.activeDays).toBe(2)
+    expect(v.cells.find((c) => c?.day === 27)).toMatchObject({ count: 0, acts: 2 })
+    expect(v.cells.find((c) => c?.day === 26)).toMatchObject({ count: 1, acts: 0 })
+  })
+
+  it('lets activities extend the week streak', () => {
+    const lifts = [w(2026, 9, 27)]
+    const runs = [w(2026, 9, 20), w(2026, 9, 14)] // lift-free weeks still count
+    expect(weekStreak(lifts, NOW)).toBe(1)
+    expect(weekStreak([...lifts, ...runs], NOW)).toBe(3)
+  })
+})

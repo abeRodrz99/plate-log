@@ -1,4 +1,5 @@
-import type { Workout } from './types'
+/** Anything that happened at a time: a lifting workout or a logged activity. */
+type Dated = { startedAt: number }
 
 const DAY = 86_400_000
 
@@ -16,7 +17,7 @@ export function weekStart(d: Date): Date {
 }
 
 /** Number of workouts logged on each local day. */
-export function countsByDay(workouts: Workout[]): Map<string, number> {
+export function countsByDay(workouts: Dated[]): Map<string, number> {
   const m = new Map<string, number>()
   for (const w of workouts) m.set(dayKey(w.startedAt), (m.get(dayKey(w.startedAt)) ?? 0) + 1)
   return m
@@ -25,7 +26,10 @@ export function countsByDay(workouts: Workout[]): Map<string, number> {
 export interface CalCell {
   day: number
   key: string
+  /** Lifting workouts that day. */
   count: number
+  /** Other activities (run, ride, ...) that day. */
+  acts: number
   today: boolean
   future: boolean
 }
@@ -37,7 +41,13 @@ export interface MonthView {
   restDays: number
 }
 
-export function monthView(year: number, month: number, counts: Map<string, number>, now: Date): MonthView {
+export function monthView(
+  year: number,
+  month: number,
+  counts: Map<string, number>,
+  now: Date,
+  actCounts: Map<string, number> = new Map(),
+): MonthView {
   const first = new Date(year, month, 1)
   const total = new Date(year, month + 1, 0).getDate()
   const todayKey = dayKey(now)
@@ -49,15 +59,16 @@ export function monthView(year: number, month: number, counts: Map<string, numbe
     const key = dayKey(d)
     const future = key > todayKey
     const count = counts.get(key) ?? 0
+    const acts = actCounts.get(key) ?? 0
     if (!future) elapsed++
-    if (count > 0) activeDays++
-    cells.push({ day, key, count, today: key === todayKey, future })
+    if (count + acts > 0) activeDays++
+    cells.push({ day, key, count, acts, today: key === todayKey, future })
   }
   return { cells, activeDays, restDays: elapsed - activeDays }
 }
 
 /** Consecutive weeks (Mon-Sun) with at least one workout. A current week with none yet doesn't break the streak. */
-export function weekStreak(workouts: Workout[], now: Date): number {
+export function weekStreak(workouts: Dated[], now: Date): number {
   const weeks = new Set(workouts.map((w) => dayKey(weekStart(new Date(w.startedAt)))))
   let cursor = weekStart(now)
   if (!weeks.has(dayKey(cursor))) cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() - 7)
@@ -70,7 +81,7 @@ export function weekStreak(workouts: Workout[], now: Date): number {
 }
 
 /** Average workouts per week over the trailing `weeks` complete-or-current weeks. */
-export function sessionsPerWeek(workouts: Workout[], now: Date, weeks = 8): number {
+export function sessionsPerWeek(workouts: Dated[], now: Date, weeks = 8): number {
   const start = weekStart(now).getTime() - (weeks - 1) * 7 * DAY
   const n = workouts.filter((w) => w.startedAt >= start && w.startedAt <= now.getTime() + DAY).length
   return Math.round((n / weeks) * 10) / 10

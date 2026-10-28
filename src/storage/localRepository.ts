@@ -1,7 +1,7 @@
 import type { Snapshot, Repository } from './repository'
 
 const KEY = 'platelog.v1'
-const empty = (): Snapshot => ({ workouts: [], templates: [] })
+const empty = (): Snapshot => ({ workouts: [], templates: [], activities: [] })
 
 function upsert<T extends { id: string }>(list: T[], item: T) {
   const i = list.findIndex((x) => x.id === item.id)
@@ -29,7 +29,7 @@ export function createLocalRepository(storage: Pick<Storage, 'getItem' | 'setIte
       const raw = storage.getItem(KEY)
       if (!raw) return empty()
       const d = JSON.parse(raw) as Partial<Snapshot>
-      return { workouts: d.workouts ?? [], templates: d.templates ?? [] }
+      return { workouts: d.workouts ?? [], templates: d.templates ?? [], activities: d.activities ?? [] }
     } catch {
       return mem
     }
@@ -68,6 +68,16 @@ export function createLocalRepository(storage: Pick<Storage, 'getItem' | 'setIte
     async deleteTemplate(id) {
       const d = read()
       d.templates = d.templates.filter((x) => x.id !== id)
+      write(d)
+    },
+    async saveActivity(a) {
+      const d = read()
+      upsert(d.activities, a)
+      write(d)
+    },
+    async deleteActivity(id) {
+      const d = read()
+      d.activities = d.activities.filter((x) => x.id !== id)
       write(d)
     },
   }

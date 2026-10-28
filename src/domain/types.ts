@@ -54,3 +54,18 @@ export interface HistoryEntry {
   workout: Workout
   exercise: LoggedExercise
 }
+
+/** Non-lifting activity. Logged only to feed the consistency views; it has no templates or sets. */
+export const ACTIVITY_KINDS = ['Run', 'Cycle', 'Swim', 'Walk', 'Hike', 'Row', 'Yoga', 'Other'] as const
+export type ActivityKind = (typeof ACTIVITY_KINDS)[number]
+
+export interface Activity {
+  id: string
+  kind: ActivityKind
+  startedAt: number
+  durationMin: number | null
+  /** In DIST_UNIT; stored as entered. */
+  distance: number | null
+  notes: string
+  sample?: boolean
+}

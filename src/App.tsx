@@ -5,6 +5,7 @@ import { History } from './features/history/History'
 import { Progress } from './features/progress/Progress'
 import { WorkoutTab } from './features/workout/WorkoutTab'
 import { AppProvider, useApp } from './state/AppState'
+import { ActivityUIProvider } from './state/ActivityUI'
 import { NavProvider, useNav } from './state/Nav'
 
 function Screen() {
@@ -46,7 +47,9 @@ export default function App() {
   return (
     <AppProvider>
       <NavProvider>
-        <Screen />
+        <ActivityUIProvider>
+          <Screen />
+        </ActivityUIProvider>
       </NavProvider>
     </AppProvider>
   )

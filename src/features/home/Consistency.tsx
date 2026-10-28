@@ -1,14 +1,19 @@
 import { useMemo, useState } from 'react'
 import { countsByDay, heatWeeks, monthView, sessionsPerWeek, weekStreak } from '../../domain/consistency'
-import type { Workout } from '../../domain/types'
+import type { Activity, Workout } from '../../domain/types'
 import { Icon } from '../../components/Icon'
+import { useLogActivity } from '../../state/ActivityUI'
+
+const dayTitle = (key: string, lifts: number, acts: number) =>
+  [key, lifts && `${lifts} lifting`, acts && `${acts} other`].filter(Boolean).join(' · ')
 
 const DOW = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
-export function ThisWeek({ workouts, now }: { workouts: Workout[]; now: Date }) {
-  const counts = useMemo(() => countsByDay(workouts), [workouts])
+export function ThisWeek({ workouts, activities, now }: { workouts: Workout[]; activities: Activity[]; now: Date }) {
+  const all = useMemo(() => [...workouts, ...activities], [workouts, activities])
+  const counts = useMemo(() => countsByDay(all), [all])
   const cols = useMemo(() => heatWeeks(counts, now, 12), [counts, now])
-  const streak = weekStreak(workouts, now)
+  const streak = weekStreak(all, now)
   const thisWeek = cols[cols.length - 1].reduce((a, d) => a + d.count, 0)
   return (
     <section className="card pad" aria-label="This week">
@@ -20,7 +25,7 @@ export function ThisWeek({ workouts, now }: { workouts: Workout[]; now: Date }) 
         </span>
       </div>
       <p className="big num">
-        {thisWeek} <small>{thisWeek === 1 ? 'workout' : 'workouts'}</small>
+        {thisWeek} <small>{thisWeek === 1 ? 'session' : 'sessions'}</small>
       </p>
       <div className="heat" role="img" aria-label={`Workouts over the last 12 weeks, ${thisWeek} this week`}>
         {cols.map((col, i) => (
@@ -35,11 +40,14 @@ export function ThisWeek({ workouts, now }: { workouts: Workout[]; now: Date }) 
   )
 }
 
-export function ConsistencyCalendar({ workouts, now }: { workouts: Workout[]; now: Date }) {
+export function ConsistencyCalendar({ workouts, activities, now }: { workouts: Workout[]; activities: Activity[]; now: Date }) {
   const [offset, setOffset] = useState(0)
+  const all = useMemo(() => [...workouts, ...activities], [workouts, activities])
   const counts = useMemo(() => countsByDay(workouts), [workouts])
+  const actCounts = useMemo(() => countsByDay(activities), [activities])
+  const logActivity = useLogActivity()
   const shown = new Date(now.getFullYear(), now.getMonth() + offset, 1)
-  const view = monthView(shown.getFullYear(), shown.getMonth(), counts, now)
+  const view = monthView(shown.getFullYear(), shown.getMonth(), counts, now, actCounts)
   const label = shown.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
 
   return (
@@ -65,8 +73,8 @@ export function ConsistencyCalendar({ workouts, now }: { workouts: Workout[]; no
             c ? (
               <span
                 key={c.key}
-                className={`day${c.count ? ' on' : ''}${c.today ? ' today' : ''}${c.future ? ' future' : ''}`}
-                title={c.count ? `${c.key}: ${c.count} workout${c.count > 1 ? 's' : ''}` : c.key}
+                className={`day${c.count ? ' on' : c.acts ? ' act' : ''}${c.count && c.acts ? ' both' : ''}${c.today ? ' today' : ''}${c.future ? ' future' : ''}`}
+                title={dayTitle(c.key, c.count, c.acts)}
               >
                 {c.day}
               </span>
@@ -78,9 +86,13 @@ export function ConsistencyCalendar({ workouts, now }: { workouts: Workout[]; no
         <dl className="cal-stats">
           <div><dt>Active days</dt><dd className="num">{view.activeDays}</dd></div>
           <div><dt>Rest days</dt><dd className="num">{view.restDays}</dd></div>
-          <div><dt>Week streak</dt><dd className="num">{weekStreak(workouts, now)}</dd></div>
-          <div><dt>Per week</dt><dd className="num">{sessionsPerWeek(workouts, now)}</dd></div>
+          <div><dt>Week streak</dt><dd className="num">{weekStreak(all, now)}</dd></div>
+          <div><dt>Per week</dt><dd className="num">{sessionsPerWeek(all, now)}</dd></div>
         </dl>
+        <div className="cal-foot">
+          <span className="legend"><i className="k lift" />Lifting <i className="k act" />Other activity</span>
+          <button className="btn ghost sm" onClick={logActivity}>+ Log activity</button>
+        </div>
       </div>
     </section>
   )

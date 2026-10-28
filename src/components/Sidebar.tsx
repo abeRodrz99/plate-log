@@ -1,4 +1,5 @@
 import { useStart } from '../lib/useStart'
+import { useLogActivity } from '../state/ActivityUI'
 import { useApp } from '../state/AppState'
 import { TABS, useNav } from '../state/Nav'
 import { Icon } from './Icon'
@@ -10,6 +11,7 @@ export function Sidebar() {
   const { tab } = useNav()
   const { active } = useApp()
   const start = useStart()
+  const logActivity = useLogActivity()
   return (
     <aside className="side" aria-label="Main">
       <a className="brand" href="#home">
@@ -19,6 +21,9 @@ export function Sidebar() {
       <button className="btn block" onClick={() => start()}>
         <Icon name="plus" size={18} />
         {active ? 'Resume workout' : 'Start workout'}
+      </button>
+      <button className="btn ghost block" onClick={logActivity}>
+        Log run, ride…
       </button>
       <nav className="side-nav">
         {TABS.map((t) => (

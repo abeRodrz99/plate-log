@@ -1,5 +1,7 @@
 /** Display unit. Values are stored as entered; this only changes labels. */
 export const UNIT = 'lb'
+/** Distance label for activities (labels only, like UNIT). */
+export const DIST_UNIT = 'mi'
 
 const pad2 = (x: number) => (x < 10 ? `0${x}` : `${x}`)
 

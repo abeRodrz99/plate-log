@@ -17,6 +17,21 @@ function fakeStorage(fail = false) {
 const w = (id: string): Workout => ({ id, name: id, startedAt: 1, notes: '', exercises: [] })
 const t = (id: string): Template => ({ id, name: id, updatedAt: 1, exercises: [] })
 
+describe('local repository activities', () => {
+  it('saves, updates and deletes activities, and tolerates old data without them', async () => {
+    const s = fakeStorage()
+    s.setItem('platelog.v1', JSON.stringify({ workouts: [], templates: [] })) // saved before activities existed
+    const repo = createLocalRepository(s)
+    expect((await repo.loadAll()).activities).toEqual([])
+    const a = { id: 'a1', kind: 'Run' as const, startedAt: 1, durationMin: 30, distance: 3, notes: '' }
+    await repo.saveActivity(a)
+    await repo.saveActivity({ ...a, distance: 4 })
+    expect((await repo.loadAll()).activities).toEqual([{ ...a, distance: 4 }])
+    await repo.deleteActivity('a1')
+    expect((await repo.loadAll()).activities).toEqual([])
+  })
+})
+
 describe('local repository', () => {
   it('round-trips workouts and templates', async () => {
     const s = fakeStorage()

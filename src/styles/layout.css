@@ -143,3 +143,28 @@
   .hero{padding:22px 26px}
   .sect{margin:36px 0 14px}
 }
+
+/* activities */
+.hero-acts{display:flex;flex-wrap:wrap;gap:10px;flex:1 1 100%}
+.hero-acts .btn{flex:1 1 auto}
+.hero .btn.ghost{min-height:50px}
+@media (min-width:960px){.hero-acts{flex:none}.hero-acts .btn{flex:none}}
+.cal .day.act{background:var(--done-bg);color:var(--done)}
+.cal .day.both{box-shadow:inset 0 -4px 0 var(--done)}
+.cal-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.legend{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted)}
+.legend .k{width:10px;height:10px;border-radius:3px;display:inline-block;margin-left:6px}
+.legend .k:first-child{margin-left:0}
+.legend .k.lift{background:var(--accent)}
+.legend .k.act{background:var(--done)}
+.heat i.l1{background:color-mix(in srgb,var(--accent) 45%,var(--surface-2))}
+.sheet-title{font:700 22px/1.2 var(--f-display);letter-spacing:-.02em}
+.sheet-note{font-size:14px;margin-top:-4px}
+.kinds{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.kind{min-height:40px;padding:0 16px;border:0;border-radius:999px;background:var(--surface-2);font-weight:600;font-size:15px}
+.kind.on{background:var(--ink);color:var(--ink-fg)}
+.dateinp{width:100%;min-height:46px;padding:0 14px;border:0;border-radius:14px;background:var(--surface-2);font-size:17px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.two .lbl small{text-transform:none;letter-spacing:0;font-weight:500}
+.numbox input.num{width:100%;min-height:46px;padding:0 14px;border:0;border-radius:14px;background:var(--surface-2);font-size:17px}
+.sheet-body .lbl{margin:12px 0 6px}

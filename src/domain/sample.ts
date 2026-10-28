@@ -1,6 +1,6 @@
 import { uid } from './format'
 import { computePRs } from './math'
-import type { ExerciseType, Workout } from './types'
+import type { Activity, ExerciseType, Workout } from './types'
 
 interface Spec {
   n: string
@@ -89,6 +89,24 @@ export function buildSampleHistory(now: number = Date.now()): Workout[] {
   for (const w of out) {
     w.prs = computePRs(done, w)
     done.push(w)
+  }
+  return out
+}
+
+/** Runs and rides around the sample lifting days (Tue easy run, Sat long run, alternate-Wed ride). */
+export function buildSampleActivities(now = new Date()): Activity[] {
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7))
+  const out: Activity[] = []
+  const add = (week: number, dayOffset: number, kind: Activity['kind'], durationMin: number, distance: number) => {
+    const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() - week * 7 + dayOffset, 7, 30)
+    if (d.getTime() > now.getTime()) return
+    out.push({ id: uid('a_'), kind, startedAt: d.getTime(), durationMin, distance, notes: '', sample: true })
+  }
+  for (let wk = WEEKS - 1; wk >= 0; wk--) {
+    const i = WEEKS - 1 - wk
+    add(wk, 1, 'Run', 32 + i, 3.5)
+    add(wk, 5, 'Run', 60 + i * 5, 6 + i * 0.5)
+    if (wk % 2 === 0) add(wk, 2, 'Cycle', 45, 14)
   }
   return out
 }

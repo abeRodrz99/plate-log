@@ -3,9 +3,11 @@ import { Icon } from '../../components/Icon'
 import { TemplateCard } from '../../components/TemplateCard'
 import { ThemeToggle } from '../../components/ThemeToggle'
 import { STARTER_TEMPLATES } from '../../domain/library'
-import { fmtDur, fmtShort, fmtVol } from '../../domain/format'
+import { DIST_UNIT, fmtDur, fmtN, fmtShort, fmtVol } from '../../domain/format'
 import { workoutVolume } from '../../domain/math'
 import { useStart } from '../../lib/useStart'
+import { useConfirm } from '../../lib/useConfirm'
+import { useLogActivity } from '../../state/ActivityUI'
 import { useApp } from '../../state/AppState'
 import { useNav } from '../../state/Nav'
 import { ConsistencyCalendar, ThisWeek } from './Consistency'
@@ -13,12 +15,19 @@ import { ConsistencyCalendar, ThisWeek } from './Consistency'
 const greeting = (h: number) => (h < 5 ? 'Late night' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening')
 
 export function Home() {
-  const { workouts, templates, active, loadSample, addStarter } = useApp()
+  const { workouts, templates, activities, active, loadSample, addStarter, deleteActivity } = useApp()
+  const logActivity = useLogActivity()
+  const { armed, confirm } = useConfirm()
   const { go, showInHistory } = useNav()
   const start = useStart()
   const now = useMemo(() => new Date(), [])
 
-  const recent = [...workouts].sort((a, b) => b.startedAt - a.startedAt).slice(0, 4)
+  const recent = [
+    ...workouts.map((w) => ({ t: w.startedAt, w, a: null })),
+    ...activities.map((a) => ({ t: a.startedAt, a, w: null })),
+  ]
+    .sort((x, y) => y.t - x.t)
+    .slice(0, 5)
   const cards = [...templates].sort((a, b) => a.name.localeCompare(b.name))
   const lastFor = (id: string) => workouts.filter((w) => w.tid === id).sort((a, b) => b.startedAt - a.startedAt)[0]
 
@@ -43,10 +52,15 @@ export function Home() {
                 {active ? `${active.name} is waiting where you left it.` : 'Start empty, or pick a plan below.'}
               </p>
             </div>
-            <button className="btn" onClick={() => start()}>
-              <Icon name="plus" size={18} />
-              {active ? 'Resume' : 'Start workout'}
-            </button>
+            <div className="hero-acts">
+              <button className="btn" onClick={() => start()}>
+                <Icon name="plus" size={18} />
+                {active ? 'Resume' : 'Start workout'}
+              </button>
+              <button className="btn ghost" onClick={logActivity}>
+                Log run, ride…
+              </button>
+            </div>
           </section>
 
           <div className="sect">
@@ -78,7 +92,28 @@ export function Home() {
           </div>
           {recent.length ? (
             <div className="rows">
-              {recent.map((w) => {
+              {recent.map((r) => {
+                if (r.a) {
+                  const x = r.a
+                  const bits = [fmtShort(x.startedAt), x.durationMin ? `${fmtN(x.durationMin)} min` : '', x.distance ? `${fmtN(x.distance)} ${DIST_UNIT}` : '']
+                  return (
+                    <div className="row" key={x.id}>
+                      <div className="grow">
+                        <h3>{x.kind}</h3>
+                        <p className="num">{bits.filter(Boolean).join(' · ')}</p>
+                      </div>
+                      <span className="chip">Activity</span>
+                      <button
+                        className={`btn sm ${armed === x.id ? 'danger' : 'ghost'}`}
+                        aria-label={`Delete ${x.kind}`}
+                        onClick={() => confirm(x.id) && deleteActivity(x.id)}
+                      >
+                        {armed === x.id ? 'Tap again' : 'Delete'}
+                      </button>
+                    </div>
+                  )
+                }
+                const w = r.w
                 const v = workoutVolume(w)
                 return (
                   <button className="row rowbtn" key={w.id} onClick={() => showInHistory(w.id)}>
@@ -105,8 +140,8 @@ export function Home() {
         </div>
 
         <aside className="home-rail">
-          <ThisWeek workouts={workouts} now={now} />
-          <ConsistencyCalendar workouts={workouts} now={now} />
+          <ThisWeek workouts={workouts} activities={activities} now={now} />
+          <ConsistencyCalendar workouts={workouts} activities={activities} now={now} />
         </aside>
       </div>
     </>

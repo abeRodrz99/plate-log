@@ -2,8 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { uid } from '../domain/format'
 import { STARTER_TEMPLATES, exercisePool } from '../domain/library'
 import { computePRs } from '../domain/math'
-import { buildSampleHistory } from '../domain/sample'
-import type { SetEntry, Template, TemplateExercise, Workout } from '../domain/types'
+import { buildSampleActivities, buildSampleHistory } from '../domain/sample'
+import type { Activity, SetEntry, Template, TemplateExercise, Workout } from '../domain/types'
 import { buzz } from '../lib/spring'
 import { createRepository, draftStore, type Repository } from '../storage'
 
@@ -18,6 +18,7 @@ interface AppContext {
   storageKind: Repository['kind']
   workouts: Workout[]
   templates: Template[]
+  activities: Activity[]
   active: Workout | null
   toastMsg: string | null
   toast(msg: string): void
@@ -30,6 +31,8 @@ interface AppContext {
   addStarter(index: number): void
   templateFromWorkout(w: Workout): void
   deleteWorkout(id: string): void
+  saveActivity(a: Activity): void
+  deleteActivity(id: string): void
   loadSample(): boolean
   removeSample(): void
   exercisePool: ReturnType<typeof exercisePool>
@@ -44,6 +47,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false)
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [templates, setTemplates] = useState<Template[]>([])
+  const [activities, setActivities] = useState<Activity[]>([])
   const [active, setActive] = useState<Workout | null>(() => draftStore.load<Workout>())
   const [toastMsg, setToastMsg] = useState<string | null>(null)
   const toastTimer = useRef<number | undefined>(undefined)
@@ -67,6 +71,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (cancelled) return
       setWorkouts(d.workouts)
       setTemplates(d.templates)
+      setActivities(d.activities)
       setReady(true)
     })
     return () => {
@@ -178,15 +183,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     persist(repo.deleteWorkout(id))
   }
 
+  const saveActivity = (a: Activity) => {
+    setActivities((prev) => (prev.some((x) => x.id === a.id) ? prev.map((x) => (x.id === a.id ? a : x)) : [...prev, a]))
+    persist(repo.saveActivity(a))
+  }
+
+  const deleteActivity = (id: string) => {
+    setActivities((prev) => prev.filter((a) => a.id !== id))
+    persist(repo.deleteActivity(id))
+  }
+
   const loadSample = () => {
     if (workouts.some((w) => w.sample)) return false
     const list = buildSampleHistory()
+    const acts = buildSampleActivities()
     setWorkouts((prev) => [...prev, ...list])
-    toast(`Loaded ${list.length} sample workouts. Remove them anytime from History.`)
+    setActivities((prev) => [...prev, ...acts])
+    toast(`Loaded ${list.length} sample workouts and ${acts.length} activities. Remove them anytime from History.`)
     // One write at a time keeps remote backends happy.
     persist(
       (async () => {
         for (const w of list) await repo.saveWorkout(w)
+        for (const a of acts) await repo.saveActivity(a)
       })(),
     )
     return true
@@ -194,11 +212,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const removeSample = () => {
     const ids = workouts.filter((w) => w.sample).map((w) => w.id)
+    const actIds = activities.filter((a) => a.sample).map((a) => a.id)
     setWorkouts((prev) => prev.filter((w) => !w.sample))
+    setActivities((prev) => prev.filter((a) => !a.sample))
     toast('Sample data removed.')
     persist(
       (async () => {
         for (const id of ids) await repo.deleteWorkout(id)
+        for (const id of actIds) await repo.deleteActivity(id)
       })(),
     )
   }
@@ -210,6 +231,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     storageKind: repo.kind,
     workouts,
     templates,
+    activities,
     active,
     toastMsg,
     toast,
@@ -222,6 +244,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addStarter,
     templateFromWorkout,
     deleteWorkout,
+    saveActivity,
+    deleteActivity,
     loadSample,
     removeSample,
     exercisePool: pool,

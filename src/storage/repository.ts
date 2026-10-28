@@ -1,8 +1,9 @@
-import type { Template, Workout } from '../domain/types'
+import type { Activity, Template, Workout } from '../domain/types'
 
 export interface Snapshot {
   workouts: Workout[]
   templates: Template[]
+  activities: Activity[]
 }
 
 /**
@@ -18,4 +19,6 @@ export interface Repository {
   deleteWorkout(id: string): Promise<void>
   saveTemplate(t: Template): Promise<void>
   deleteTemplate(id: string): Promise<void>
+  saveActivity(a: Activity): Promise<void>
+  deleteActivity(id: string): Promise<void>
 }

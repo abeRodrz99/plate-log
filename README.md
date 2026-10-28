@@ -51,9 +51,11 @@ A relational shape that maps directly onto the types in `src/domain/types.ts`:
 | `workout_exercises` | id, workout_id, position, name, type (`wr` / `time` / `dist`) |
 | `sets` | id, workout_exercise_id, position, weight, reps, done |
 | `templates` | id, user_id, name, updated_at, exercises (json) |
+| `activities` | id, user_id, kind, started_at, duration_min, distance, notes |
 
 ## Notes
 
+- Activities (run, cycle, swim, ...) are a separate, minimal record (`Activity`): date, type, optional minutes and distance. They only feed the consistency calendar, heatmap and week streak. Templates, sets and programs are lifting-only.
 - Units are labels only (`UNIT` in `src/domain/format.ts`, default `lb`). Switching does not convert stored numbers.
 - Sample history (Progress or History tab) creates 15 clearly marked workouts and can be removed in two taps.
 - Estimated 1RM uses the Epley formula. A lift's first session is a baseline, never a PR.
