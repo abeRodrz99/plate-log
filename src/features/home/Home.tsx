@@ -59,7 +59,7 @@ export function Home() {
                 {active ? 'Resume' : 'Start workout'}
               </button>
               <button className="btn ghost" onClick={logActivity}>
-                Log run, ride…
+                Log activity
               </button>
             </div>
           </section>

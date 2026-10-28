@@ -30,6 +30,10 @@ src/
   styles/      tokens.css (colors, type), app.css (components), layout.css (shell + responsive layouts)
 ```
 
+## Home screen icon
+
+The app icon is `public/icon.svg`. After editing it, run `python3 scripts/make-icons.py` (needs Playwright) to regenerate the PNGs used for iOS (`apple-touch-icon.png`) and the web manifest. On iPhone: Share, then Add to Home Screen.
+
 ## Connecting a database
 
 Everything the UI knows about storage is the `Repository` interface in `src/storage/repository.ts`:

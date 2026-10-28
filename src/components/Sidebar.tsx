@@ -23,7 +23,7 @@ export function Sidebar() {
         {active ? 'Resume workout' : 'Start workout'}
       </button>
       <button className="btn ghost block" onClick={logActivity}>
-        Log run, ride…
+        Log activity
       </button>
       <nav className="side-nav">
         {TABS.map((t) => (
