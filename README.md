@@ -1,7 +1,8 @@
 # Plate Log
 
 A no-frills gym workout tracker: log sets from templates, review history, and watch per-lift
-strength trends. No social features. Phone-first, light and dark.
+strength trends. No social features. Light and dark, with two layouts: a floating pill tab bar
+and single column on phones, and a sidebar + dashboard with a right rail from 960px up.
 
 Preloaded with a two-day runner strength plan (hinge + hamstrings, squat + single-leg).
 
@@ -23,10 +24,10 @@ src/
   domain/      pure logic and types, no React: e1RM, volume, PRs, formatting, exercise library, sample data
   storage/     Repository interface + localStorage implementation (the only place data is read or written)
   state/       AppProvider (workouts, templates, active draft, toasts) and hash-based tab navigation
-  features/    workout/ (home, active session, template editor), history/, progress/ (chart + sessions)
-  components/  shared UI: BottomSheet (spring-driven), ExercisePicker, TabBar, NumField, ...
+  features/    home/ (dashboard, consistency calendar), workout/ (plans, active session, editor), history/, progress/
+  components/  shared UI: Sidebar (desktop), TabBar (phone), TemplateCard, BottomSheet, ExercisePicker, ...
   lib/         spring physics, haptics, two-tap confirm hook
-  styles/      tokens.css (colors, type) and app.css
+  styles/      tokens.css (colors, type), app.css (components), layout.css (shell + responsive layouts)
 ```
 
 ## Connecting a database

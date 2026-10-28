@@ -1,7 +1,8 @@
-import { fmtShort, fmtVol } from '../../domain/format'
+import { fmtVol } from '../../domain/format'
 import { STARTER_TEMPLATES } from '../../domain/library'
 import { workoutVolume } from '../../domain/math'
 import type { Template } from '../../domain/types'
+import { TemplateCard } from '../../components/TemplateCard'
 import { useApp } from '../../state/AppState'
 
 interface Props {
@@ -26,7 +27,7 @@ export function WorkoutHome({ onEdit }: Props) {
     <>
       <div className="top">
         <div>
-          <h1>Plate Log</h1>
+          <h1>Workout</h1>
           <p className="sub">{sub}</p>
         </div>
       </div>
@@ -43,26 +44,16 @@ export function WorkoutHome({ onEdit }: Props) {
       </div>
 
       {sorted.length > 0 ? (
-        <div className="rows">
-          {sorted.map((t) => {
-            const last = workouts.filter((w) => w.tid === t.id).sort((a, b) => b.startedAt - a.startedAt)[0]
-            return (
-              <div className="row" key={t.id}>
-                <div className="grow">
-                  <h3>{t.name}</h3>
-                  <p>
-                    {t.exercises.length} exercises{last ? ` · last ${fmtShort(last.startedAt)}` : ''}
-                  </p>
-                </div>
-                <button className="btn ghost sm" onClick={() => onEdit(t)}>
-                  Edit
-                </button>
-                <button className="btn sm" onClick={() => startWorkout(t)}>
-                  Start
-                </button>
-              </div>
-            )
-          })}
+        <div className="tgrid">
+          {sorted.map((t) => (
+            <TemplateCard
+              key={t.id}
+              t={t}
+              last={workouts.filter((w) => w.tid === t.id).sort((a, b) => b.startedAt - a.startedAt)[0]}
+              onStart={() => startWorkout(t)}
+              onEdit={() => onEdit(t)}
+            />
+          ))}
         </div>
       ) : (
         starters.length === 0 && (

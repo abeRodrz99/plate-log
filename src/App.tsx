@@ -1,4 +1,6 @@
+import { Sidebar } from './components/Sidebar'
 import { TabBar } from './components/TabBar'
+import { Home } from './features/home/Home'
 import { History } from './features/history/History'
 import { Progress } from './features/progress/Progress'
 import { WorkoutTab } from './features/workout/WorkoutTab'
@@ -11,7 +13,8 @@ function Screen() {
 
   return (
     <>
-      <div id="app">
+      <Sidebar />
+      <main id="app" data-tab={tab}>
         {!ready ? (
           <>
             <div className="top">
@@ -23,10 +26,12 @@ function Screen() {
           <History />
         ) : tab === 'progress' ? (
           <Progress />
-        ) : (
+        ) : tab === 'workout' ? (
           <WorkoutTab />
+        ) : (
+          <Home />
         )}
-      </div>
+      </main>
       <TabBar />
       {toastMsg && (
         <div id="toast" role="status">

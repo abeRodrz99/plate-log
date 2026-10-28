@@ -1,4 +1,9 @@
 const PATHS = {
+  home: 'M4 11l8-7 8 7M6 10v9h12v-9',
+  plus: 'M12 5v14M5 12h14',
+  flame: 'M12 3c1 3 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-6 1-9z',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  sun: 'M12 7v-3M12 20v-3M7 12H4M20 12h-3M8.5 8.5L6.5 6.5M17.5 17.5l-2-2M15.5 8.5l2-2M6.5 17.5l2-2',
   bell: 'M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11',
   clock: 'M12 7v5l3 2',
   chart: 'M4 19V5M4 19h16M8 15l3-4 3 3 5-7',
@@ -13,7 +18,7 @@ const PATHS = {
 export type IconName = keyof typeof PATHS
 
 export function Icon({ name, size }: { name: IconName; size?: number }) {
-  const px = size ?? (name === 'bell' || name === 'clock' || name === 'chart' ? 22 : 18)
+  const px = size ?? (['bell', 'clock', 'chart', 'home'].includes(name) ? 22 : 18)
   return (
     <svg
       viewBox="0 0 24 24"
@@ -27,6 +32,7 @@ export function Icon({ name, size }: { name: IconName; size?: number }) {
       aria-hidden="true"
     >
       {name === 'clock' && <circle cx="12" cy="12" r="9" />}
+      {name === 'sun' && <circle cx="12" cy="12" r="3.5" />}
       <path d={PATHS[name]} />
     </svg>
   )

@@ -1,11 +1,11 @@
 import { createContext, useCallback, useContext, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
 
-export const TABS = ['workout', 'progress', 'history'] as const
+export const TABS = ['home', 'workout', 'progress', 'history'] as const
 export type Tab = (typeof TABS)[number]
 
 const parse = (): Tab => {
   const h = location.hash.replace('#', '')
-  return (TABS as readonly string[]).includes(h) ? (h as Tab) : 'workout'
+  return (TABS as readonly string[]).includes(h) ? (h as Tab) : 'home'
 }
 const subscribe = (cb: () => void) => {
   window.addEventListener('hashchange', cb)
@@ -25,7 +25,7 @@ interface NavContext {
 const Ctx = createContext<NavContext | null>(null)
 
 export function NavProvider({ children }: { children: ReactNode }) {
-  const tab = useSyncExternalStore(subscribe, parse, () => 'workout' as Tab)
+  const tab = useSyncExternalStore(subscribe, parse, () => 'home' as Tab)
   const [historyOpen, setHistoryOpen] = useState<string | null>(null)
 
   const go = useCallback((t: Tab) => {
