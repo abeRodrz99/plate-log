@@ -12,10 +12,10 @@ const toInput = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
  * Quick log for runs, rides and so on. These only feed the consistency views:
  * no templates, sets or programs, which stay lifting-only.
  */
-export function ActivitySheet({ onClose }: { onClose(): void }) {
+export function ActivitySheet({ onClose, initialDate }: { onClose(): void; initialDate?: Date }) {
   const { saveActivity, toast } = useApp()
   const [kind, setKind] = useState<ActivityKind>('Run')
-  const [date, setDate] = useState(toInput(new Date()))
+  const [date, setDate] = useState(toInput(initialDate ?? new Date()))
   const [minutes, setMinutes] = useState<number | null>(null)
   const [distance, setDistance] = useState<number | null>(null)
 

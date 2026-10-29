@@ -5,6 +5,7 @@ import { ThemeToggle } from '../../components/ThemeToggle'
 import { STARTER_TEMPLATES } from '../../domain/library'
 import { DIST_UNIT, fmtDur, fmtN, fmtShort, fmtVol } from '../../domain/format'
 import { workoutVolume } from '../../domain/math'
+import { useWide } from '../../lib/useMedia'
 import { useStart } from '../../lib/useStart'
 import { useConfirm } from '../../lib/useConfirm'
 import { useLogActivity } from '../../state/ActivityUI'
@@ -18,6 +19,7 @@ const greeting = (h: number) => (h < 5 ? 'Late night' : h < 12 ? 'Good morning' 
 export function Home() {
   const { workouts, templates, activities, active, loadSample, addStarter, deleteActivity, importable, importLocal, dismissImport } = useApp()
   const logActivity = useLogActivity()
+  const wide = useWide()
   const { armed, confirm } = useConfirm()
   const { go, showInHistory } = useNav()
   const start = useStart()
@@ -31,6 +33,8 @@ export function Home() {
     .slice(0, 5)
   const cards = [...templates].sort((a, b) => a.name.localeCompare(b.name))
   const lastFor = (id: string) => workouts.filter((w) => w.tid === id).sort((a, b) => b.startedAt - a.startedAt)[0]
+
+  const calendar = <ConsistencyCalendar workouts={workouts} activities={activities} now={now} />
 
   return (
     <>
@@ -78,11 +82,14 @@ export function Home() {
                 <Icon name="plus" size={18} />
                 {active ? 'Resume' : 'Start workout'}
               </button>
-              <button className="btn ghost" onClick={logActivity}>
+              <button className="btn ghost" onClick={() => logActivity()}>
                 Log activity
               </button>
             </div>
           </section>
+
+          {/* Phones: the calendar sits right under the start card. Desktop: it lives in the right rail. */}
+          {!wide && <div className="cal-slot">{calendar}</div>}
 
           <div className="sect">
             <h2>Your plans</h2>
@@ -161,7 +168,7 @@ export function Home() {
         </div>
 
         <aside className="home-rail">
-          <ConsistencyCalendar workouts={workouts} activities={activities} now={now} />
+          {wide && calendar}
           <RecentPRs workouts={workouts} now={now.getTime()} />
         </aside>
       </div>

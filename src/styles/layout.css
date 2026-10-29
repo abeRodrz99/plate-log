@@ -290,3 +290,25 @@
 .editor-actions .btn{width:100%;padding:0 12px;white-space:nowrap}
 .btn.ghost.warn{color:var(--danger);background:color-mix(in srgb,var(--danger) 12%,transparent)}
 @media (min-width:960px){.editor-actions{max-width:420px}}
+
+/* calendar day popovers */
+.cal-wrap{position:relative}
+.cal .day{border:0;font:inherit;font-size:12px;font-weight:600;padding:0}
+.cal button.day{cursor:pointer;transition:transform .12s ease-out,box-shadow .12s}
+.cal button.day:hover,.cal button.day.sel{transform:scale(1.08);box-shadow:0 0 0 2px var(--ink)}
+.cal button.day.today{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.cal button.day.today.sel{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent)}
+.cal button.day.both{box-shadow:inset 0 -4px 0 var(--done)}
+.cal button.day.both:hover,.cal button.day.both.sel{box-shadow:inset 0 -4px 0 var(--done),0 0 0 2px var(--ink)}
+.dp{position:absolute;z-index:12;display:flex;flex-direction:column;gap:2px;padding:12px;border-radius:18px;background:var(--surface);box-shadow:0 12px 36px rgba(16,24,40,.22),0 0 0 1px var(--line)}
+.dp h4{margin:0 0 4px;font:700 15px/1.2 var(--f-display);letter-spacing:-.01em}
+.dp-row{display:grid;grid-template-columns:10px minmax(0,1fr);gap:10px;align-items:start;width:100%;padding:8px 8px;border:0;border-radius:12px;background:transparent;text-align:left;font:inherit}
+button.dp-row:hover,button.dp-row:active{background:var(--surface-2)}
+.dp-row .k{width:10px;height:10px;border-radius:3px;margin-top:5px;display:block}
+.dp-row .k.kl{background:var(--accent)}
+.dp-row .k.ka{background:var(--done)}
+.dp-row b{display:block;font-size:15px;line-height:1.25}
+.dp-row small{display:block;font-size:13px;color:var(--muted)}
+.dp-empty{margin:2px 8px 6px;font-size:14px;color:var(--muted)}
+.dp-add{align-self:flex-start;margin:4px 8px 2px;font-size:14px}
+.cal-slot{margin-top:14px}

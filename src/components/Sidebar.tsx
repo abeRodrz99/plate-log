@@ -24,7 +24,7 @@ export function Sidebar() {
         <Icon name="plus" size={18} />
         {active ? 'Resume workout' : 'Start workout'}
       </button>
-      <button className="btn ghost block" onClick={logActivity}>
+      <button className="btn ghost block" onClick={() => logActivity()}>
         Log activity
       </button>
       <nav className="side-nav">
