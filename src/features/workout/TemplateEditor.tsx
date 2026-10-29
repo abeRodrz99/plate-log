@@ -93,14 +93,14 @@ export function TemplateEditor({ template, onDone }: Props) {
               </div>
               <div className="fields">
                 <label>
-                  Sets{' '}
+                  <span>Sets</span>
                   <input type="text" inputMode="numeric" className="num" value={x.sets} onChange={(e) => patch(i, { sets: e.target.value })} />
                 </label>
                 <label>
-                  Target {EXERCISE_TYPE_LABEL[x.type].col.toLowerCase()}{' '}
+                  <span>Target {EXERCISE_TYPE_LABEL[x.type].col.toLowerCase()}</span>
                   <input
                     type="text"
-                    className="reps num"
+                    className="num"
                     placeholder="e.g. 6-8"
                     value={x.reps}
                     onChange={(e) => patch(i, { reps: e.target.value })}
@@ -116,16 +116,16 @@ export function TemplateEditor({ template, onDone }: Props) {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-        <button className="btn ghost" onClick={() => setPicking(true)}>
-          + Add exercise
-        </button>
+      <button className="btn ghost block" style={{ marginTop: 12 }} onClick={() => setPicking(true)}>
+        + Add exercise
+      </button>
+      <div className={`editor-actions${isNew ? ' solo' : ''}`}>
         <button className="btn ghost" onClick={onDone}>
           Cancel
         </button>
         {!isNew && (
           <button
-            className={`btn ${armed === 't-del' ? 'danger' : 'ghost'}`}
+            className={`btn ghost ${armed === 't-del' ? 'danger' : 'warn'}`}
             onClick={() => {
               if (confirm('t-del')) {
                 deleteTemplate(id)
